@@ -1,13 +1,13 @@
 package com.example.calculator;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
-import java.io.*;
-        import java.nio.file.*;
-        import java.time.LocalDateTime;
-        import java.time.format.DateTimeFormatter;
-        import java.util.*;
-
-// Define the Operation as a Strategy Pattern
 interface Operation {
     double execute(double a, double b);
     String getName();
@@ -24,7 +24,6 @@ class Addition implements Operation {
         return "addition";
     }
 }
-
 class Subtraction implements Operation {
     @Override
     public double execute(double a, double b) {
@@ -33,10 +32,9 @@ class Subtraction implements Operation {
 
     @Override
     public String getName() {
-        return "soustraction";
+        return "subtraction";
     }
 }
-
 class Multiplication implements Operation {
     @Override
     public double execute(double a, double b) {
@@ -91,6 +89,26 @@ class FileReader {
     }
 }
 
+class OperationExecutor {
+    private Operation operation;
+    private Logger logger;
+
+    OperationExecutor(Operation operation, Logger logger) {
+        this.operation = operation;
+        this.logger = logger;
+    }
+
+    double execute(List<Double> numbers) {
+        double result = numbers.get(0);
+        for (int i = 1; i < numbers.size(); i++) {
+            logger.log("parsed value = " + numbers.get(i));
+            result = operation.execute(result, numbers.get(i));
+            logger.log("accumulation : " + result + " on line " + (i + 1));
+        }
+        return result;
+    }
+}
+
 public class Calculator {
     public static void main(String[] args) throws IOException {
         if (args.length < 2) {
@@ -112,19 +130,14 @@ public class Calculator {
             System.exit(1);
         }
 
-        double result = numbers.get(0);
         logger.log("started");
         logger.log("applying operation " + operation.getName());
-        for (int i = 1; i < numbers.size(); i++) {
-            logger.log("parsed value = " + numbers.get(i));
-            result = operation.execute(result, numbers.get(i));
-            System.out.println((opSymbol.equals("+") ? "" : opSymbol) + numbers.get(i) + " = " + result);
-            logger.log("accumulation : " + result + " on line " + (i + 1));
-        }
+
+        OperationExecutor executor = new OperationExecutor(operation, logger);
+        double result = executor.execute(numbers);
+
         System.out.println("-------");
         System.out.println("Total = " + result);
         logger.log("end of program");
     }
 }
-
-
